@@ -100,7 +100,7 @@ class Attachment(Base):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         '''
         This method returns an Attachment object that contains
         the base64 decoded string of the text of the given element

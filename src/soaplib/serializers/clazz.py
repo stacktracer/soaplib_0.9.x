@@ -178,7 +178,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         inst = cls.get_deserialization_instance()
 
         for c in element:
@@ -203,11 +203,11 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 if value is None:
                     value = []
 
-                value.append(member.from_xml(c))
+                value.append(member.from_xml(c, serializers))
                 setattr(inst, key, value)
 
             else:
-                setattr(inst, key, member.from_xml(c))
+                setattr(inst, key, member.from_xml(c, serializers))
 
         return inst
 
@@ -353,13 +353,13 @@ class Array(ClassSerializer):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         retval = []
         for serializer in cls._type_info.values():
             break
 
         for child in element.getchildren():
-            retval.append(serializer.from_xml(child))
+            retval.append(serializer.from_xml(child, serializers))
 
         return retval
 

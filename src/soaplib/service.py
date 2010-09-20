@@ -468,6 +468,41 @@ class DefinitionBase(object):
 
         return cb_port_type
 
+    def get_serializers(self):
+        serializers = odict()
+        def add_serializer(cls):
+            serializers[cls.get_type_name()] = cls
+
+        if self.__in_header__ != None:
+            self.__in_header__.resolve_namespace(self.__in_header__, self.get_tns())
+            add_serializer(self.__in_header__)
+
+        if self.__out_header__ != None:
+            self.__out_header__.resolve_namespace(self.__out_header__, self.get_tns())
+            add_serializer(self.__out_header__)
+
+        for method in self.public_methods:
+            add_serializer(method.in_message)
+            add_serializer(method.out_message)
+
+            for s in method.in_message._type_info.values():
+                add_serializer(s)
+
+            for s in method.out_message._type_info.values():
+                add_serializer(s)
+
+            if method.in_header is None:
+                method.in_header = self.__in_header__
+            else:
+                add_serializer(method.in_header)
+
+            if method.out_header is None:
+                method.out_header = self.__out_header__
+            else:
+                add_serializer(method.out_header)
+
+        return serializers
+
     def add_schema(self, schema_entries):
         '''
         A private method for adding the appropriate entries

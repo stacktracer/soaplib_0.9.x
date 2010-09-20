@@ -30,11 +30,11 @@ def nillable_value(func):
     return wrapper
 
 def nillable_element(func):
-    def wrapper(cls, element):
+    def wrapper(cls, element, serializers=None):
         if bool(element.get('{%s}nil' % soaplib.ns_xsi)): # or (element.text is None and len(element.getchildren()) == 0):
             return None
         else:
-            return func(cls, element)
+            return func(cls, element, serializers)
     return wrapper
 
 def string_to_xml(cls, value, tns, parent_elt, name):
@@ -141,7 +141,7 @@ class Null(Base):
         element.set('{%s}nil' % soaplib.ns_xsi, 'true')
 
     @classmethod
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         return None
 
 class SimpleType(Base):

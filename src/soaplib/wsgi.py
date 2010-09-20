@@ -407,14 +407,16 @@ class Application(object):
             descriptor = service.get_method(method_name)
             func = getattr(service, descriptor.name)
 
+            serializers = service.get_serializers()
+
             # decode header object
             if soap_req_header is not None and len(soap_req_header) > 0:
                 in_header = descriptor.in_header
-                service.soap_in_header = in_header.from_xml(soap_req_header)
+                service.soap_in_header = in_header.from_xml(soap_req_header, serializers)
 
             # decode method arguments
             if soap_req_payload is not None and len(soap_req_payload) > 0:
-                params = descriptor.in_message.from_xml(soap_req_payload)
+                params = descriptor.in_message.from_xml(soap_req_payload, serializers)
             else:
                 params = [None] * len(descriptor.in_message._type_info)
 

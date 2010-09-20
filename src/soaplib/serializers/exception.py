@@ -42,7 +42,7 @@ class Fault(Exception, Base):
         etree.SubElement(element, '{%s}detail' % tns).text = value.detail
 
     @classmethod
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         code = element.find('faultcode').text
         string = element.find('faultstring').text
         detail_element = element.find('detail')

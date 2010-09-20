@@ -60,7 +60,7 @@ class Any(SimpleType):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         children = element.getchildren()
         retval = None
 
@@ -78,7 +78,7 @@ class AnyAsDict(Any):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         children = element.getchildren()
         if children:
             return etree_to_dict(element)
@@ -142,7 +142,7 @@ class String(SimpleType):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         u = element.text or ""
         try:
             u = str(u)
@@ -157,7 +157,7 @@ class AnyUri(String):
 class Integer(SimpleType):
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         i = element.text
 
         try:
@@ -173,7 +173,7 @@ class Integer(SimpleType):
 class Decimal(SimpleType):
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         return decimal.Decimal(element.text)
 
 class Date(SimpleType):
@@ -184,7 +184,7 @@ class Date(SimpleType):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         """expect ISO formatted dates"""
         text = element.text
 
@@ -210,7 +210,7 @@ class DateTime(SimpleType):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         """expect ISO formatted dates"""
 
         text = element.text
@@ -241,7 +241,7 @@ class DateTime(SimpleType):
 class Double(SimpleType):
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         return float(element.text)
 
     @classmethod
@@ -260,7 +260,7 @@ class Boolean(SimpleType):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         s = element.text
         return (s and s.lower()[0] == 't')
 

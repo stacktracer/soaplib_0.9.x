@@ -30,7 +30,7 @@ class EnumBase(SimpleType):
 
     @classmethod
     @nillable_element
-    def from_xml(cls, element):
+    def from_xml(cls, element, serializers=None):
         return getattr(cls, element.text)
 
 def Enum(*values, **kwargs):
