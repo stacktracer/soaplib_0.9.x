@@ -33,9 +33,9 @@ setup(
     keywords=('soap', 'wsdl', 'wsgi'),
     author='Soaplib Contributors',
     author_email='soap@python.org',
-    maintainer = 'Burak Arslan',
-    maintainer_email = 'burak-soaplib@arskom.com.tr',
-    url='http://github.com/arskom/soaplib',
+    maintainer = 'Mike Hogye',
+    maintainer_email = 'stacktracer@gmail.com',
+    url='http://github.com/stacktracer/soaplib_0.9.x',
     license='LGPL',
     zip_safe=False,
     install_requires=[
