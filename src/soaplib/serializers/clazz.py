@@ -197,6 +197,16 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 raise Exception('the %s object does not have a "%s" member' %
                                                              (cls.__name__,key))
 
+            # XXX: Be more careful about the type's namespace
+            c_type_name = c.get('{%s}type' % soaplib.ns_xsi)
+            c_serializer = None
+            if c_type_name is not None:
+                c_serializer = serializers.get(c_type_name)
+
+            # XXX: Make sure it's a subclass of member
+            if c_serializer is not None:
+                member = c_serializer
+
             mo = member.Attributes.max_occurs
             if mo == 'unbounded' or mo > 1:
                 value = getattr(inst, key, None)
