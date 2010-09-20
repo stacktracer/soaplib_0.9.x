@@ -204,6 +204,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 c_serializer = serializers.get(c_type_name)
 
             # XXX: Make sure it's a subclass of member
+
             if c_serializer is not None:
                 member = c_serializer
 
@@ -368,8 +369,20 @@ class Array(ClassSerializer):
         for serializer in cls._type_info.values():
             break
 
-        for child in element.getchildren():
-            retval.append(serializer.from_xml(child, serializers))
+        for c in element.getchildren():
+
+            # XXX: Be more careful here about the type's namespace
+            c_type_name = c.get('{%s}type' % soaplib.ns_xsi)
+            c_serializer = None
+            if c_type_name is not None:
+                c_serializer = serializers.get(c_type_name)
+
+            # XXX: Make sure it's a subclass of serializer
+
+            if c_serializer is None:
+                c_serializer = serializer
+
+            retval.append(c_serializer.from_xml(c, serializers))
 
         return retval
 
