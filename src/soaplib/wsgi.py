@@ -45,36 +45,50 @@ class ValidationError(Fault):
     pass
 
 class Application(object):
-    def __init__(self, services, tns, _with_partnerlink=False):
+    def __init__(self, services, tns, name=None, _with_partnerlink=False):
         '''
         @param A ServiceBase subclass that defines the exposed services.
         '''
 
         self.services = services
-        self.call_routes = {}
+        self.__tns = tns
+        self.__name = name
+        self._with_plink = _with_partnerlink
 
+        self.call_routes = {}
         self.__wsdl = None
         self.__public_methods = {}
         self.schema = None
-        self.tns = tns
-        self._with_plink = _with_partnerlink
 
         self.build_schema()
 
-    def get_tns(self):
-        if not (self.tns is None):
-            return self.tns
+    def get_name(self):
+        retval = self.__name
 
-        service_name = self.__class__.__name__.split('.')[-1]
-
-        retval = '.'.join((self.__class__.__module__, service_name))
-        if self.__class__.__module__ == '__main__':
-            retval = '.'.join((service_name, service_name))
-
-        if retval.startswith('soaplib'):
-            retval = self.services[0].get_tns()
+        if retval is None:
+            retval = self.__class__.__name__.split('.')[-1]
 
         return retval
+
+    name = property(get_name)
+
+    def get_tns(self):
+        retval = self.__tns
+
+        if retval is None:
+            service_name = self.get_name()
+
+            if self.__class__.__module__ == '__main__':
+                retval = '.'.join((service_name, service_name))
+            else:
+                retval = '.'.join((self.__class__.__module__, service_name))
+
+            if retval.startswith('soaplib'):
+                retval = self.services[0].get_tns()
+
+        return retval
+
+    tns = property(get_tns)
 
     def __get_schema_node(self, pref, schema_nodes, types):
         # create schema node
@@ -103,7 +117,7 @@ class Application(object):
 
             # append import tags
             for namespace in schema_entries.imports[pref]:
-                import_ = etree.SubElement(schema, "{%s}import" % soaplib.ns_xsd)
+                import_ = etree.SubElement(schema, "{%s}import"% soaplib.ns_xsd)
                 import_.set("namespace", namespace)
                 if types is None:
                     import_.set('schemaLocation', "%s.xsd" %
@@ -188,13 +202,13 @@ class Application(object):
 
         ns_tns = self.get_tns()
         pref_tns = soaplib.get_namespace_prefix(ns_tns) #'tns'
+        # FIXME: this can be enabled when soaplib.nsmap is no longer global
         #soaplib.set_namespace_prefix(ns_tns, pref_tns)
 
         # FIXME: doesn't look so robust
         url = url.replace('.wsdl', '')
 
-        # TODO: we may want to customize service_name.
-        service_name = self.__class__.__name__.split('.')[-1]
+        service_name = self.get_name()
 
         # create wsdl root node
         root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=soaplib.nsmap)
@@ -244,7 +258,8 @@ class Application(object):
             cb_binding = s.add_bindings_for_methods(root, service_name, types,
                                                        url, binding, cb_binding)
 
-        self.__wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
+        self.__wsdl = etree.tostring(root, xml_declaration=True,
+                                                               encoding="UTF-8")
 
         return self.__wsdl
 
@@ -274,9 +289,9 @@ class Application(object):
             return [self.__wsdl]
 
         except Exception, e:
-            # implementation hook
             logger.error(traceback.format_exc())
 
+            # implementation hook
             self.on_wsdl_exception(req_env, e)
 
             start_response(HTTP_500, http_resp_headers.items())
@@ -421,7 +436,8 @@ class Application(object):
                 params = [None] * len(descriptor.in_message._type_info)
 
             # implementation hook
-            service.on_method_call(req_env, method_name, params, soap_req_payload)
+            service.on_method_call(req_env, method_name, params,
+                                                               soap_req_payload)
 
             # call the method
             result_raw = service.call_wrapper(func, params)
@@ -455,7 +471,8 @@ class Application(object):
             #
             # body
             #
-            soap_body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
+            soap_body = etree.SubElement(envelope,
+                                               '{%s}Body' % soaplib.ns_soap_env)
 
             # instantiate the result message
             result_message = descriptor.out_message()
@@ -519,7 +536,8 @@ class Application(object):
             return self.__handle_fault(req_env, start_response,
                                               http_resp_headers, service, fault)
 
-    def __handle_fault(self, req_env, start_response, http_resp_headers, service, exc):
+    def __handle_fault(self, req_env, start_response, http_resp_headers,
+                                                                  service, exc):
         stacktrace=traceback.format_exc()
         logger.error(stacktrace)
 
@@ -530,7 +548,8 @@ class Application(object):
 
         # FIXME: There's no way to alter soap response headers for the user.
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
-        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env, nsmap=soaplib.nsmap)
+        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env,
+                                                            nsmap=soaplib.nsmap)
         exc.__class__.to_xml(exc, self.get_tns(), body)
 
         if not (service is None):
@@ -640,7 +659,8 @@ class ValidatingApplication(Application):
                 f = open(file_name, 'w')
                 etree.ElementTree(v).write(f, pretty_print=True)
                 f.close()
-                logger.debug("writing %r for ns %s" % (file_name, soaplib.nsmap[k]))
+                logger.debug("writing %r for ns %s" % (file_name,
+                                                            soaplib.nsmap[k]))
 
             f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 

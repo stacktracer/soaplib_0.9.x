@@ -154,7 +154,18 @@ class String(SimpleType):
 class AnyUri(String):
     __type_name__ = 'anyURI'
 
-class Integer(SimpleType):
+class Decimal(SimpleType):
+    @classmethod
+    @nillable_value
+    def to_xml(cls, value, tns, parent_elt, name='retval'):
+        string_to_xml(cls, str(value), tns, parent_elt, name)
+
+    @classmethod
+    @nillable_element
+    def from_xml(cls, element, serializers=None):
+        return decimal.Decimal(element.text)
+
+class Integer(Decimal):
     @classmethod
     @nillable_element
     def from_xml(cls, element, serializers=None):
@@ -164,17 +175,6 @@ class Integer(SimpleType):
             return int(i)
         except:
             return long(i)
-
-    @classmethod
-    @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, str(value), tns, parent_elt, name)
-
-class Decimal(SimpleType):
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element, serializers=None):
-        return decimal.Decimal(element.text)
 
 class Date(SimpleType):
     @classmethod
@@ -262,7 +262,7 @@ class Boolean(SimpleType):
     @nillable_element
     def from_xml(cls, element, serializers=None):
         s = element.text
-        return (s and s.lower()[0] == 't')
+        return (s and s.lower() in ['true', '1'])
 
 # a class that is really a namespace
 class Mandatory(object):
