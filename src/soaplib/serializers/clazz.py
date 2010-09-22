@@ -67,16 +67,19 @@ class ClassSerializerMeta(type(Base)):
 
             for k,v in cls_dict.items():
                 if not k.startswith('__'):
-                    subc = False
+                    subc = None
                     try:
                         if issubclass(v,Base):
-                            subc = True
+                            subc = v
                     except:
                         pass
 
+                    if (subc is None) and isinstance(v, Base):
+                        subc = type(v)
+
                     if subc:
-                        _type_info[k] = v
-                        if issubclass(v, Array) and v.serializer is None:
+                        _type_info[k] = subc
+                        if issubclass(subc, Array) and subc.serializer is None:
                             raise Exception("%s.%s is an array of what?" %
                                                                   (cls_name, k))
         else:
